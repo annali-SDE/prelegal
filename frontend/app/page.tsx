@@ -101,7 +101,7 @@ export default function Home() {
       {/* Main split layout */}
       <div className="max-w-screen-2xl mx-auto flex h-[calc(100vh-56px)]">
         {/* Left: Form */}
-        <aside className="w-[440px] flex-shrink-0 overflow-y-auto border-r border-slate-200 bg-slate-50 px-6 py-6">
+        <aside className="w-110 shrink-0 overflow-y-auto border-r border-slate-200 bg-slate-50 px-6 py-6">
           <NdaForm data={formData} onChange={handleChange} />
         </aside>
 

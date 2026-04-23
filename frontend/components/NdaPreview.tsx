@@ -6,10 +6,6 @@ interface NdaPreviewProps {
   data: NdaFormData;
 }
 
-function fill(value: string, placeholder: string) {
-  return value.trim() ? value : placeholder;
-}
-
 function formatDate(dateStr: string) {
   if (!dateStr) return "[Date]";
   const d = new Date(dateStr + "T00:00:00");
@@ -46,7 +42,7 @@ export default function NdaPreview({ data }: NdaPreviewProps) {
       style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
     >
       {/* Cover Page */}
-      <div className="text-center mb-10 pb-8 border-b border-slate-200">
+      <div id="pdf-cover-header" className="text-center mb-10 pb-8 border-b border-slate-200">
         <p className="text-xs uppercase tracking-widest text-slate-400 mb-2">Common Paper</p>
         <h1 className="text-2xl font-bold text-slate-900 mb-1">
           Mutual Non-Disclosure Agreement
@@ -54,7 +50,7 @@ export default function NdaPreview({ data }: NdaPreviewProps) {
         <p className="text-sm text-slate-500">Version 1.0</p>
       </div>
 
-      <div className="mb-8 p-5 bg-slate-50 rounded-xl border border-slate-100">
+      <div id="pdf-cover-note" className="mb-8 p-5 bg-slate-50 rounded-xl border border-slate-100">
         <p className="text-xs text-slate-500 mb-3 italic">
           This MNDA consists of this Cover Page and the Common Paper Mutual NDA Standard Terms
           Version 1.0. Modifications to the Standard Terms should be made on the Cover Page.
@@ -62,7 +58,7 @@ export default function NdaPreview({ data }: NdaPreviewProps) {
       </div>
 
       {/* Cover fields */}
-      <div className="space-y-6 mb-10">
+      <div id="pdf-cover-fields" className="space-y-6 mb-10">
         <CoverField label="Purpose">
           <Blank value={data.purpose} placeholder="[Purpose of disclosure]" />
         </CoverField>
@@ -96,36 +92,38 @@ export default function NdaPreview({ data }: NdaPreviewProps) {
       </div>
 
       {/* Signature Table */}
-      <p className="text-sm mb-4 text-slate-600">
-        By signing this Cover Page, each party agrees to enter into this MNDA as of the Effective
-        Date.
-      </p>
+      <div id="pdf-signature-section" className="mb-10">
+        <p className="text-sm mb-4 text-slate-600">
+          By signing this Cover Page, each party agrees to enter into this MNDA as of the Effective
+          Date.
+        </p>
 
-      <div className="grid grid-cols-2 gap-6 mb-10">
-        <PartyBlock
-          label="Party 1"
-          name={data.party1Name}
-          title={data.party1Title}
-          company={data.party1Company}
-          noticeAddress={data.party1NoticeAddress}
-          signatureData={data.party1SignatureData}
-          date={data.party1Date}
-        />
-        <PartyBlock
-          label="Party 2"
-          name={data.party2Name}
-          title={data.party2Title}
-          company={data.party2Company}
-          noticeAddress={data.party2NoticeAddress}
-          signatureData={data.party2SignatureData}
-          date={data.party2Date}
-        />
+        <div className="grid grid-cols-2 gap-6">
+          <PartyBlock
+            label="Party 1"
+            name={data.party1Name}
+            title={data.party1Title}
+            company={data.party1Company}
+            noticeAddress={data.party1NoticeAddress}
+            signatureData={data.party1SignatureData}
+            date={data.party1Date}
+          />
+          <PartyBlock
+            label="Party 2"
+            name={data.party2Name}
+            title={data.party2Title}
+            company={data.party2Company}
+            noticeAddress={data.party2NoticeAddress}
+            signatureData={data.party2SignatureData}
+            date={data.party2Date}
+          />
+        </div>
       </div>
 
-      {/* Divider */}
+      {/* Standard Terms — page-break target for PDF export */}
+      <div id="pdf-standard-terms">
       <hr className="border-slate-200 my-10" />
 
-      {/* Standard Terms */}
       <h2 className="text-lg font-bold text-slate-900 mb-6">Standard Terms</h2>
 
       <div className="space-y-5 text-sm leading-7 text-slate-700">
@@ -243,6 +241,7 @@ export default function NdaPreview({ data }: NdaPreviewProps) {
       <p className="mt-8 text-xs text-slate-400 text-center">
         Common Paper Mutual Non-Disclosure Agreement Version 1.0 — free to use under CC BY 4.0.
       </p>
+      </div>{/* end #pdf-standard-terms */}
     </div>
   );
 }
@@ -277,7 +276,7 @@ function PartyBlock({
     <div className="border border-slate-200 rounded-xl p-4 space-y-3 text-sm">
       <p className="font-semibold text-slate-800 text-xs uppercase tracking-wide">{label}</p>
 
-      <div className="min-h-[72px] border border-slate-100 rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden">
+      <div className="min-h-18 border border-slate-100 rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden">
         {signatureData ? (
           <img src={signatureData} alt={`${label} signature`} className="max-h-16 object-contain" />
         ) : (
@@ -297,7 +296,7 @@ function PartyBlock({
 function SignatureRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex gap-2 border-b border-slate-100 pb-1">
-      <span className="text-xs text-slate-400 w-28 flex-shrink-0">{label}</span>
+      <span className="text-xs text-slate-400 w-28 shrink-0">{label}</span>
       <span className={`text-xs flex-1 ${value && value !== "[Date]" ? "text-slate-800" : "text-slate-300"}`}>
         {value || "—"}
       </span>
