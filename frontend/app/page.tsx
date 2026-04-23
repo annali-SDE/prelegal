@@ -1,0 +1,113 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import NdaForm from "@/components/NdaForm";
+import NdaPreview from "@/components/NdaPreview";
+import { NdaFormData, defaultFormData } from "@/types/nda";
+
+export default function Home() {
+  const [formData, setFormData] = useState<NdaFormData>(defaultFormData);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleChange = useCallback((updates: Partial<NdaFormData>) => {
+    setFormData((prev) => ({ ...prev, ...updates }));
+  }, []);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const { exportNdaToPdf } = await import("@/utils/exportPdf");
+      await exportNdaToPdf();
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <header className="sticky top-0 z-20 bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-screen-2xl mx-auto px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
+              <svg
+                className="w-4 h-4 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
+            <span className="text-sm font-semibold text-slate-800">Mutual NDA Creator</span>
+            <span className="text-xs text-slate-400 hidden sm:inline">— Common Paper v1.0</span>
+          </div>
+
+          <button
+            onClick={handleExport}
+            disabled={isExporting}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+          >
+            {isExporting ? (
+              <>
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  />
+                </svg>
+                Generating PDF&hellip;
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
+                </svg>
+                Download PDF
+              </>
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* Main split layout */}
+      <div className="max-w-screen-2xl mx-auto flex h-[calc(100vh-56px)]">
+        {/* Left: Form */}
+        <aside className="w-[440px] flex-shrink-0 overflow-y-auto border-r border-slate-200 bg-slate-50 px-6 py-6">
+          <NdaForm data={formData} onChange={handleChange} />
+        </aside>
+
+        {/* Right: Live Preview */}
+        <main className="flex-1 overflow-y-auto px-8 py-6">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">
+                Live Preview
+              </p>
+              <span className="text-xs text-slate-300">Updates as you type</span>
+            </div>
+            <NdaPreview data={formData} />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
