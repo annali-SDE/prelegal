@@ -8,6 +8,7 @@ import { NdaFormData, defaultFormData } from "@/types/nda";
 export default function Home() {
   const [formData, setFormData] = useState<NdaFormData>(defaultFormData);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const handleChange = useCallback((updates: Partial<NdaFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
@@ -15,9 +16,12 @@ export default function Home() {
 
   const handleExport = async () => {
     setIsExporting(true);
+    setExportError(null);
     try {
       const { exportNdaToPdf } = await import("@/utils/exportPdf");
       await exportNdaToPdf();
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : "PDF export failed");
     } finally {
       setIsExporting(false);
     }
@@ -87,6 +91,12 @@ export default function Home() {
           </button>
         </div>
       </header>
+
+      {exportError && (
+        <div className="bg-red-50 border-b border-red-200 px-6 py-2 text-sm text-red-700">
+          Export failed: {exportError}
+        </div>
+      )}
 
       {/* Main split layout */}
       <div className="max-w-screen-2xl mx-auto flex h-[calc(100vh-56px)]">

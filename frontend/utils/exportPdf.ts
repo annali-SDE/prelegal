@@ -1,51 +1,49 @@
-export async function exportNdaToPdf() {
-  const { default: html2canvas } = await import("html2canvas");
-  const { default: jsPDF } = await import("jspdf");
+export async function exportNdaToPdf(): Promise<void> {
+  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+    import("html2canvas"),
+    import("jspdf"),
+  ]);
 
   const element = document.getElementById("nda-preview");
-  if (!element) throw new Error("NDA preview element not found");
+  if (!element) throw new Error("Preview element not found");
 
   const canvas = await html2canvas(element, {
     scale: 2,
     useCORS: true,
+    allowTaint: true,
     backgroundColor: "#ffffff",
     logging: false,
   });
 
-  const imgData = canvas.toDataURL("image/png");
   const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
+  const pageW = pdf.internal.pageSize.getWidth();  // 210 mm
+  const pageH = pdf.internal.pageSize.getHeight(); // 297 mm
   const margin = 10;
-  const usableWidth = pageWidth - margin * 2;
+  const contentW = pageW - margin * 2; // 190 mm
+  const contentH = pageH - margin * 2; // 277 mm
 
-  const imgWidth = canvas.width;
-  const imgHeight = canvas.height;
-  const ratio = usableWidth / (imgWidth / 2); // divide by scale factor
-  const totalHeight = (imgHeight / 2) * ratio;
+  // mm per canvas pixel (canvas is at 2× scale)
+  const mmPerPx = contentW / canvas.width;
+  const totalMm = canvas.height * mmPerPx;
 
-  let yOffset = 0;
-  let pageCount = 0;
+  let offsetMm = 0;
+  let page = 0;
 
-  while (yOffset < totalHeight) {
-    if (pageCount > 0) pdf.addPage();
+  while (offsetMm < totalMm) {
+    if (page > 0) pdf.addPage();
 
-    const sourceY = (yOffset / ratio) * 2;
-    const sourceHeight = Math.min((pageHeight / ratio) * 2, imgHeight - sourceY);
+    const srcY = Math.round(offsetMm / mmPerPx);
+    const srcH = Math.min(Math.round(contentH / mmPerPx), canvas.height - srcY);
 
-    const pageCanvas = document.createElement("canvas");
-    pageCanvas.width = imgWidth;
-    pageCanvas.height = sourceHeight;
-    const ctx = pageCanvas.getContext("2d")!;
-    ctx.drawImage(canvas, 0, sourceY, imgWidth, sourceHeight, 0, 0, imgWidth, sourceHeight);
+    const slice = document.createElement("canvas");
+    slice.width = canvas.width;
+    slice.height = srcH;
+    slice.getContext("2d")!.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
 
-    const pageImgData = pageCanvas.toDataURL("image/png");
-    const renderedHeight = (sourceHeight / 2) * ratio;
-    pdf.addImage(pageImgData, "PNG", margin, margin, usableWidth, renderedHeight);
+    pdf.addImage(slice.toDataURL("image/png"), "PNG", margin, margin, contentW, srcH * mmPerPx);
 
-    yOffset += pageHeight - margin * 2;
-    pageCount++;
+    offsetMm += contentH;
+    page++;
   }
 
   pdf.save("Mutual-NDA.pdf");
