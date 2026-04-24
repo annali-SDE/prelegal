@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from prelegal.core.config import settings
 from prelegal.core.database import init_db
-from prelegal.routers import auth, documents, health
+from prelegal.routers import auth, chat, documents, health
 
 
 @asynccontextmanager
@@ -20,6 +20,7 @@ app = FastAPI(title="Prelegal API", lifespan=lifespan)
 
 app.include_router(health.router)
 app.include_router(auth.router)
+app.include_router(chat.router)
 app.include_router(documents.router)
 
 
