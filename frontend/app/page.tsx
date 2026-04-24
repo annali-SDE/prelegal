@@ -1,17 +1,23 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import NdaForm from "@/components/NdaForm";
+import NdaChat from "@/components/NdaChat";
 import NdaPreview from "@/components/NdaPreview";
+import SignatureSection from "@/components/SignatureSection";
 import { NdaFormData, defaultFormData } from "@/types/nda";
 
 export default function Home() {
   const [formData, setFormData] = useState<NdaFormData>(defaultFormData);
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [isComplete, setIsComplete] = useState(false);
 
   const handleChange = useCallback((updates: Partial<NdaFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
+  }, []);
+
+  const handleComplete = useCallback(() => {
+    setIsComplete(true);
   }, []);
 
   const handleExport = async () => {
@@ -52,43 +58,51 @@ export default function Home() {
             <span className="text-xs text-slate-400 hidden sm:inline">— Common Paper v1.0</span>
           </div>
 
-          <button
-            onClick={handleExport}
-            disabled={isExporting}
-            className="flex items-center gap-2 px-4 py-2 bg-[#753991] hover:bg-[#5e2c74] disabled:bg-[#b07fc4] text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
-          >
-            {isExporting ? (
-              <>
-                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  />
-                </svg>
-                Generating PDF&hellip;
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  />
-                </svg>
-                Download PDF
-              </>
+          <div className="flex items-center gap-3">
+            {isComplete && (
+              <span className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                All fields gathered
+              </span>
             )}
-          </button>
+            <button
+              onClick={handleExport}
+              disabled={isExporting}
+              className="flex items-center gap-2 px-4 py-2 bg-[#753991] hover:bg-[#5e2c74] disabled:bg-[#b07fc4] text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+            >
+              {isExporting ? (
+                <>
+                  <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"
+                    />
+                  </svg>
+                  Generating PDF&hellip;
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  Download PDF
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -100,9 +114,16 @@ export default function Home() {
 
       {/* Main split layout */}
       <div className="max-w-screen-2xl mx-auto flex h-[calc(100vh-56px)]">
-        {/* Left: Form */}
-        <aside className="w-110 shrink-0 overflow-y-auto border-r border-slate-200 bg-slate-50 px-6 py-6">
-          <NdaForm data={formData} onChange={handleChange} />
+        {/* Left: Chat + Signatures */}
+        <aside className="w-110 shrink-0 flex flex-col border-r border-slate-200 bg-slate-50 overflow-hidden">
+          {/* Chat panel — takes remaining height */}
+          <div className="flex-1 min-h-0 flex flex-col px-6 pt-6 pb-3">
+            <NdaChat onFieldsUpdate={handleChange} onComplete={handleComplete} />
+          </div>
+          {/* Signature panel — scrollable below */}
+          <div className="border-t border-slate-200 px-6 py-6 overflow-y-auto max-h-[45vh]">
+            <SignatureSection data={formData} onChange={handleChange} />
+          </div>
         </aside>
 
         {/* Right: Live Preview */}
@@ -112,7 +133,7 @@ export default function Home() {
               <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">
                 Live Preview
               </p>
-              <span className="text-xs text-slate-300">Updates as you type</span>
+              <span className="text-xs text-slate-300">Updates as you chat</span>
             </div>
             <NdaPreview data={formData} />
           </div>

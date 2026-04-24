@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     db_path: str = "./prelegal.db"
     frontend_dist_dir: str = "../frontend/out"
     cookie_name: str = "prelegal_token"
+    openrouter_api_key: str = ""
 
 
 settings = Settings()
