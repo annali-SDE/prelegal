@@ -17,7 +17,7 @@ function Blank({ value, placeholder }: { value: string; placeholder: string }) {
   const isEmpty = !value.trim();
   return (
     <span
-      className={`font-medium ${isEmpty ? "text-indigo-400 border-b border-dashed border-indigo-300" : "text-slate-800"}`}
+      className={`font-medium ${isEmpty ? "text-[#209dd7] border-b border-dashed border-[#209dd7]/50" : "text-slate-800"}`}
     >
       {text}
     </span>
@@ -44,7 +44,7 @@ export default function NdaPreview({ data }: NdaPreviewProps) {
       {/* Cover Page */}
       <div id="pdf-cover-header" className="text-center mb-10 pb-8 border-b border-slate-200">
         <p className="text-xs uppercase tracking-widest text-slate-400 mb-2">Common Paper</p>
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">
+        <h1 className="text-2xl font-bold text-[#032147] mb-1">
           Mutual Non-Disclosure Agreement
         </h1>
         <p className="text-sm text-slate-500">Version 1.0</p>
@@ -124,7 +124,7 @@ export default function NdaPreview({ data }: NdaPreviewProps) {
       <div id="pdf-standard-terms">
       <hr className="border-slate-200 my-10" />
 
-      <h2 className="text-lg font-bold text-slate-900 mb-6">Standard Terms</h2>
+      <h2 className="text-lg font-bold text-[#032147] mb-6">Standard Terms</h2>
 
       <div className="space-y-5 text-sm leading-7 text-slate-700">
         <Clause number="1" title="Introduction">
@@ -273,10 +273,10 @@ function PartyBlock({
   date: string;
 }) {
   return (
-    <div className="border border-slate-200 rounded-xl p-4 space-y-3 text-sm">
+    <div className="pdf-avoid-break border border-slate-200 rounded-xl p-4 space-y-3 text-sm">
       <p className="font-semibold text-slate-800 text-xs uppercase tracking-wide">{label}</p>
 
-      <div className="min-h-18 border border-slate-100 rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden">
+      <div className="min-h-[4.5rem] border border-slate-100 rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden">
         {signatureData ? (
           <img src={signatureData} alt={`${label} signature`} className="max-h-16 object-contain" />
         ) : (
@@ -314,7 +314,7 @@ function Clause({
   children: React.ReactNode;
 }) {
   return (
-    <p>
+    <p className="pdf-avoid-break">
       <strong>
         {number}. {title}.
       </strong>{" "}

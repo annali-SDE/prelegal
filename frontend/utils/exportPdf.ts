@@ -8,6 +8,36 @@ function getRelativeTop(el: HTMLElement, ancestor: HTMLElement): number {
   return offset;
 }
 
+// Collect [topPx, bottomPx] ranges (in canvas pixels) for every element that
+// carries the pdf-avoid-break class.  Page breaks must not land inside these ranges.
+function collectAvoidBreakRanges(
+  root: HTMLElement,
+  domToCanvas: number,
+): Array<[number, number]> {
+  const els = root.querySelectorAll<HTMLElement>(".pdf-avoid-break");
+  const ranges: Array<[number, number]> = [];
+  els.forEach((el) => {
+    const top = Math.floor(getRelativeTop(el, root) * domToCanvas);
+    const bottom = Math.ceil((getRelativeTop(el, root) + el.offsetHeight) * domToCanvas);
+    ranges.push([top, bottom]);
+  });
+  return ranges;
+}
+
+// If proposedBreak falls inside an avoid-break element, return the element's top
+// (break before the element). Otherwise return proposedBreak unchanged.
+function snapBreak(
+  proposedBreak: number,
+  ranges: Array<[number, number]>,
+): number {
+  for (const [top, bottom] of ranges) {
+    if (proposedBreak > top && proposedBreak < bottom) {
+      return top;
+    }
+  }
+  return proposedBreak;
+}
+
 export async function exportNdaToPdf(): Promise<void> {
   const [{ toCanvas }, { jsPDF }] = await Promise.all([
     import("html-to-image"),
@@ -21,7 +51,6 @@ export async function exportNdaToPdf(): Promise<void> {
   if (!hadExportClass) element.classList.add("pdf-export-mode");
 
   try {
-    // Locate where standard terms start so page 1 = cover + signatures
     const standardTermsEl = document.getElementById("pdf-standard-terms");
     const standardTermsDomY = standardTermsEl
       ? getRelativeTop(standardTermsEl, element)
@@ -42,14 +71,13 @@ export async function exportNdaToPdf(): Promise<void> {
 
     const mmPerPx = contentW / canvas.width;
     const pageContentPx = contentH / mmPerPx;
-
-    // Scale from DOM pixels → canvas pixels
     const domToCanvas = canvas.height / element.offsetHeight;
 
-    // Build explicit page-break positions (in canvas px from top)
+    const avoidRanges = collectAvoidBreakRanges(element, domToCanvas);
+
     const pageStartsPx: number[] = [0];
 
-    // Forced break: right at the start of the standard terms section
+    // Forced break: cover + signatures on page 1, standard terms from page 2
     if (standardTermsDomY !== null) {
       const forcedBreakPx = Math.round(standardTermsDomY * domToCanvas);
       if (forcedBreakPx > 10 && forcedBreakPx < canvas.height) {
@@ -57,12 +85,15 @@ export async function exportNdaToPdf(): Promise<void> {
       }
     }
 
-    // Regular height-based breaks for remaining content
-    const lastBreak = pageStartsPx[pageStartsPx.length - 1];
-    let cur = lastBreak + pageContentPx;
+    // Automatic breaks: if the computed break falls inside a pdf-avoid-break
+    // element, move it to just before that element's top edge.
+    const lastForced = pageStartsPx[pageStartsPx.length - 1];
+    let cur = lastForced + pageContentPx;
     while (cur < canvas.height) {
-      pageStartsPx.push(Math.round(cur));
-      cur += pageContentPx;
+      const safeBreak = snapBreak(Math.round(cur), avoidRanges);
+      pageStartsPx.push(safeBreak);
+      // Advance from the snapped position so we don't drift backward.
+      cur = safeBreak + pageContentPx;
     }
 
     // Render each page slice
@@ -70,15 +101,25 @@ export async function exportNdaToPdf(): Promise<void> {
       if (i > 0) pdf.addPage();
 
       const srcY = pageStartsPx[i];
-      const srcEnd = i + 1 < pageStartsPx.length ? pageStartsPx[i + 1] : canvas.height;
+      const srcEnd =
+        i + 1 < pageStartsPx.length ? pageStartsPx[i + 1] : canvas.height;
       const srcH = Math.max(1, srcEnd - srcY);
 
       const slice = document.createElement("canvas");
       slice.width = canvas.width;
       slice.height = srcH;
-      slice.getContext("2d")!.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+      slice
+        .getContext("2d")!
+        .drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
 
-      pdf.addImage(slice.toDataURL("image/png"), "PNG", margin, margin, contentW, srcH * mmPerPx);
+      pdf.addImage(
+        slice.toDataURL("image/png"),
+        "PNG",
+        margin,
+        margin,
+        contentW,
+        srcH * mmPerPx,
+      );
     }
 
     pdf.save("Mutual-NDA.pdf");

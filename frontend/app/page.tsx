@@ -33,7 +33,7 @@ export default function Home() {
       <header className="sticky top-0 z-20 bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-screen-2xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-[#209dd7] flex items-center justify-center">
               <svg
                 className="w-4 h-4 text-white"
                 fill="none"
@@ -48,14 +48,14 @@ export default function Home() {
                 />
               </svg>
             </div>
-            <span className="text-sm font-semibold text-slate-800">Mutual NDA Creator</span>
+            <span className="text-sm font-semibold text-[#032147]">Mutual NDA Creator</span>
             <span className="text-xs text-slate-400 hidden sm:inline">— Common Paper v1.0</span>
           </div>
 
           <button
             onClick={handleExport}
             disabled={isExporting}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-[#753991] hover:bg-[#5e2c74] disabled:bg-[#b07fc4] text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
           >
             {isExporting ? (
               <>

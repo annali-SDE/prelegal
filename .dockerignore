@@ -1,0 +1,12 @@
+**/.git
+**/.gitignore
+**/__pycache__
+**/*.pyc
+**/.next
+**/node_modules
+**/out
+**/.worktrees
+*.md
+.env
+backend/prelegal.db
+frontend/.env*.local
