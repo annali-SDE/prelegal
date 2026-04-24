@@ -3,7 +3,7 @@ import asyncio
 from litellm import completion
 
 from prelegal.core.config import settings
-from prelegal.models.chat import ChatResponse
+from prelegal.models.chat import AiStructuredOutput, ChatResponse
 
 MODEL = "openrouter/openai/gpt-oss-120b"
 EXTRA_BODY = {"provider": {"order": ["cerebras"]}}
@@ -51,13 +51,13 @@ async def get_ai_response(conversation_history: list[dict], user_message: str) -
         completion,
         model=MODEL,
         messages=messages,
-        response_format=ChatResponse,
+        response_format=AiStructuredOutput,
         extra_body=EXTRA_BODY,
         api_key=settings.openrouter_api_key,
     )
     raw = response.choices[0].message.content
     parsed = AiStructuredOutput.model_validate_json(raw)
-    clean_fields = {k: v for k, v in parsed.extracted_fields.items() if v is not None}
+    clean_fields = parsed.extracted_fields.model_dump(exclude_none=True)
     return ChatResponse(
         reply=parsed.reply,
         extracted_fields=clean_fields,

@@ -25,7 +25,8 @@ RUN uv pip install --system --no-cache \
     "bcrypt>=4.0.0" \
     "aiosqlite>=0.20.0" \
     "python-multipart>=0.0.9" \
-    "email-validator>=2.0.0"
+    "email-validator>=2.0.0" \
+    "litellm>=1.40.0"
 
 # Copy the Next.js static export into the backend working directory
 COPY --from=frontend-builder /app/frontend/out ./frontend_dist
