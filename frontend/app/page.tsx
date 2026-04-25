@@ -4,28 +4,69 @@ import { useState, useCallback } from "react";
 import NdaChat from "@/components/NdaChat";
 import NdaPreview from "@/components/NdaPreview";
 import SignatureSection from "@/components/SignatureSection";
+import DocumentSelector from "@/components/DocumentSelector";
+import GenericPreview from "@/components/GenericPreview";
 import { NdaFormData, defaultFormData } from "@/types/nda";
+import { catalog } from "@/types/catalog";
+
+const NDA_SLUGS = new Set(["mutual_nda", "mutual_nda_coverpage"]);
 
 export default function Home() {
-  const [formData, setFormData] = useState<NdaFormData>(defaultFormData);
+  const [documentType, setDocumentType] = useState<string | null>(null);
+  const [ndaData, setNdaData] = useState<NdaFormData>(defaultFormData);
+  const [genericFields, setGenericFields] = useState<Record<string, unknown>>({});
+  const [isComplete, setIsComplete] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
-  const [isComplete, setIsComplete] = useState(false);
 
-  const handleChange = useCallback((updates: Partial<NdaFormData>) => {
-    setFormData((prev) => ({ ...prev, ...updates }));
-  }, []);
+  const isNda = documentType !== null && NDA_SLUGS.has(documentType);
+  const docEntry = catalog.find((e) => e.slug === documentType);
+  const docName = docEntry?.name ?? documentType ?? "Document";
+
+  const handleFieldsUpdate = useCallback(
+    (updates: Record<string, unknown>) => {
+      if (documentType !== null && NDA_SLUGS.has(documentType)) {
+        setNdaData((prev) => ({ ...prev, ...(updates as Partial<NdaFormData>) }));
+      } else {
+        setGenericFields((prev) => ({ ...prev, ...updates }));
+      }
+    },
+    [documentType]
+  );
 
   const handleComplete = useCallback(() => {
     setIsComplete(true);
   }, []);
 
+  const handleSelect = (slug: string) => {
+    setDocumentType(slug);
+    setNdaData(defaultFormData);
+    setGenericFields({});
+    setIsComplete(false);
+    setExportError(null);
+  };
+
+  const handleNewDocument = () => {
+    setDocumentType(null);
+    setNdaData(defaultFormData);
+    setGenericFields({});
+    setIsComplete(false);
+    setExportError(null);
+  };
+
   const handleExport = async () => {
+    if (!documentType) return;
     setIsExporting(true);
     setExportError(null);
     try {
-      const { exportNdaToPdf } = await import("@/utils/exportPdf");
-      await exportNdaToPdf();
+      if (isNda) {
+        const { exportNdaToPdf } = await import("@/utils/exportPdf");
+        await exportNdaToPdf();
+      } else {
+        const { exportDocumentToPdf } = await import("@/utils/exportPdf");
+        const filename = (docEntry?.filename ?? documentType).replace(/\.md$/, ".pdf");
+        await exportDocumentToPdf("document-preview", filename);
+      }
     } catch (err) {
       setExportError(err instanceof Error ? err.message : "PDF export failed");
     } finally {
@@ -33,13 +74,22 @@ export default function Home() {
     }
   };
 
+  // Show catalog picker when no document type selected
+  if (!documentType) {
+    return <DocumentSelector onSelect={handleSelect} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <header className="sticky top-0 z-20 bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-screen-2xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg bg-[#209dd7] flex items-center justify-center">
+            <button
+              onClick={handleNewDocument}
+              className="w-7 h-7 rounded-lg bg-[#209dd7] flex items-center justify-center hover:bg-[#1a85b9] transition-colors"
+              title="Choose a different document"
+            >
               <svg
                 className="w-4 h-4 text-white"
                 fill="none"
@@ -53,12 +103,17 @@ export default function Home() {
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-            </div>
-            <span className="text-sm font-semibold text-[#032147]">Mutual NDA Creator</span>
-            <span className="text-xs text-slate-400 hidden sm:inline">— Common Paper v1.0</span>
+            </button>
+            <span className="text-sm font-semibold text-[#032147]">{docName}</span>
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={handleNewDocument}
+              className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#209dd7] transition-colors"
+            >
+              ← All documents
+            </button>
             {isComplete && (
               <span className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-emerald-600">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -114,16 +169,20 @@ export default function Home() {
 
       {/* Main split layout */}
       <div className="max-w-screen-2xl mx-auto flex h-[calc(100vh-56px)]">
-        {/* Left: Chat + Signatures */}
+        {/* Left: Chat + Signatures (NDA only) */}
         <aside className="w-110 shrink-0 flex flex-col border-r border-slate-200 bg-slate-50 overflow-hidden">
-          {/* Chat panel — takes remaining height */}
           <div className="flex-1 min-h-0 flex flex-col px-6 pt-6 pb-3">
-            <NdaChat onFieldsUpdate={handleChange} onComplete={handleComplete} />
+            <NdaChat
+              documentType={documentType}
+              onFieldsUpdate={handleFieldsUpdate}
+              onComplete={handleComplete}
+            />
           </div>
-          {/* Signature panel — scrollable below */}
-          <div className="border-t border-slate-200 px-6 py-6 overflow-y-auto max-h-[45vh]">
-            <SignatureSection data={formData} onChange={handleChange} />
-          </div>
+          {isNda && (
+            <div className="border-t border-slate-200 px-6 py-6 overflow-y-auto max-h-[45vh]">
+              <SignatureSection data={ndaData} onChange={(u) => setNdaData((p) => ({ ...p, ...u }))} />
+            </div>
+          )}
         </aside>
 
         {/* Right: Live Preview */}
@@ -135,7 +194,15 @@ export default function Home() {
               </p>
               <span className="text-xs text-slate-300">Updates as you chat</span>
             </div>
-            <NdaPreview data={formData} />
+            {isNda ? (
+              <NdaPreview data={ndaData} />
+            ) : (
+              <GenericPreview
+                documentType={documentType}
+                fields={genericFields}
+                isComplete={isComplete}
+              />
+            )}
           </div>
         </main>
       </div>

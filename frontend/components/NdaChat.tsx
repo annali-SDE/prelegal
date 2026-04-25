@@ -3,14 +3,14 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChatMessage, ChatResponse } from "@/types/chat";
-import { NdaFormData } from "@/types/nda";
 
-interface NdaChatProps {
-  onFieldsUpdate: (updates: Partial<NdaFormData>) => void;
+interface DocumentChatProps {
+  documentType: string;
+  onFieldsUpdate: (updates: Record<string, unknown>) => void;
   onComplete: () => void;
 }
 
-export default function NdaChat({ onFieldsUpdate, onComplete }: NdaChatProps) {
+export default function NdaChat({ documentType, onFieldsUpdate, onComplete }: DocumentChatProps) {
   const { user, isLoading: authLoading, openAuthModal } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -21,17 +21,25 @@ export default function NdaChat({ onFieldsUpdate, onComplete }: NdaChatProps) {
   const pendingSnapshotRef = useRef<ChatMessage[] | null>(null);
   const greetingFetchedRef = useRef(false);
 
-  // Fetch greeting exactly once after user is confirmed
+  // Reset conversation when document type changes
+  useEffect(() => {
+    greetingFetchedRef.current = false;
+    setMessages([]);
+  }, [documentType]);
+
+  // Fetch greeting exactly once after user is confirmed (re-runs when documentType changes via reset above)
   useEffect(() => {
     if (!user || greetingFetchedRef.current) return;
     greetingFetchedRef.current = true;
-    fetch("/api/chat/greeting", { credentials: "include" })
+    fetch(`/api/chat/greeting?document_type=${encodeURIComponent(documentType)}`, {
+      credentials: "include",
+    })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data) setMessages([{ role: "assistant", content: data.message }]);
       })
       .catch(() => {});
-  }, [user]);
+  }, [user, documentType]);
 
   // Auto-open auth modal when not authenticated after loading
   useEffect(() => {
@@ -52,14 +60,13 @@ export default function NdaChat({ onFieldsUpdate, onComplete }: NdaChatProps) {
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
-            document_type: "mutual_nda",
+            document_type: documentType,
             message: text,
             conversation_history: snapshot,
           }),
         });
 
         if (res.status === 401) {
-          // Roll back optimistic user message and queue for retry
           setMessages(snapshot);
           pendingTextRef.current = text;
           pendingSnapshotRef.current = snapshot;
@@ -79,7 +86,7 @@ export default function NdaChat({ onFieldsUpdate, onComplete }: NdaChatProps) {
         setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
 
         if (Object.keys(data.extracted_fields).length > 0) {
-          onFieldsUpdate(data.extracted_fields as Partial<NdaFormData>);
+          onFieldsUpdate(data.extracted_fields);
         }
         if (data.is_complete) onComplete();
       } catch {
@@ -92,7 +99,7 @@ export default function NdaChat({ onFieldsUpdate, onComplete }: NdaChatProps) {
         inputRef.current?.focus();
       }
     },
-    [openAuthModal, onFieldsUpdate, onComplete]
+    [documentType, openAuthModal, onFieldsUpdate, onComplete]
   );
 
   // After successful sign-in, retry any pending message
@@ -147,7 +154,7 @@ export default function NdaChat({ onFieldsUpdate, onComplete }: NdaChatProps) {
               </svg>
             </div>
             <p className="text-sm text-slate-500">
-              Sign in to start creating your NDA with the AI assistant.
+              Sign in to start creating your document with the AI assistant.
             </p>
             <button
               onClick={openAuthModal}

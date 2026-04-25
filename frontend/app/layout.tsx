@@ -7,8 +7,8 @@ import AuthModal from "@/components/AuthModal";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Mutual NDA Creator",
-  description: "Create and download a Mutual Non-Disclosure Agreement — powered by Common Paper v1.0",
+  title: "Prelegal — AI Legal Document Creator",
+  description: "Create and download legal agreements with AI — powered by Common Paper",
 };
 
 export default function RootLayout({
