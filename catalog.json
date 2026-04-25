@@ -2,61 +2,73 @@
   {
     "name": "Mutual Non-Disclosure Agreement",
     "description": "Standard Mutual NDA for sharing confidential information between two parties, created by a committee of over 40 attorneys. Covers confidentiality obligations, permitted disclosures, and term of agreement.",
-    "filename": "Mutual-NDA.md"
+    "filename": "Mutual-NDA.md",
+    "slug": "mutual_nda"
   },
   {
     "name": "Mutual NDA Cover Page",
     "description": "Cover page template for the Mutual NDA, used to capture the specific deal terms (parties, effective date, governing law) that are incorporated by reference into the Standard Terms.",
-    "filename": "Mutual-NDA-coverpage.md"
+    "filename": "Mutual-NDA-coverpage.md",
+    "slug": "mutual_nda_coverpage"
   },
   {
     "name": "Cloud Service Agreement",
     "description": "Standard agreement for selling and buying cloud software and SaaS products, covering subscription terms, acceptable use, data handling, warranties, and liability. Created by a committee of over 40 attorneys.",
-    "filename": "CSA.md"
+    "filename": "CSA.md",
+    "slug": "cloud_service_agreement"
   },
   {
     "name": "Design Partner Agreement",
     "description": "Standard agreement for early-stage product development partnerships, where a customer agrees to provide feedback and participate in product development in exchange for early or discounted access.",
-    "filename": "design-partner-agreement.md"
+    "filename": "design-partner-agreement.md",
+    "slug": "design_partner_agreement"
   },
   {
     "name": "Service Level Agreement",
     "description": "Standard SLA defining uptime commitments, measurement methodology, and remedies such as service credits. Designed to be used alongside the Common Paper Cloud Service Agreement.",
-    "filename": "sla.md"
+    "filename": "sla.md",
+    "slug": "service_level_agreement"
   },
   {
     "name": "Professional Services Agreement",
     "description": "Standard agreement for engaging a vendor to deliver professional or consulting services, covering statements of work, deliverables, payment terms, intellectual property ownership, and liability.",
-    "filename": "psa.md"
+    "filename": "psa.md",
+    "slug": "professional_services_agreement"
   },
   {
     "name": "Data Processing Agreement",
     "description": "Standard DPA for governing the processing of personal data on behalf of a controller, designed to satisfy GDPR and other data protection law requirements including sub-processor obligations and data subject rights.",
-    "filename": "DPA.md"
+    "filename": "DPA.md",
+    "slug": "data_processing_agreement"
   },
   {
     "name": "Software License Agreement",
     "description": "Standard agreement for licensing software to customers, covering license grant, restrictions, maintenance and support, fees, warranties, and liability. Suitable for on-premise or hosted software.",
-    "filename": "Software-License-Agreement.md"
+    "filename": "Software-License-Agreement.md",
+    "slug": "software_license_agreement"
   },
   {
     "name": "Partnership Agreement",
     "description": "Standard agreement for formalizing business partnerships, covering roles and responsibilities, revenue sharing, intellectual property, exclusivity, and termination rights.",
-    "filename": "Partnership-Agreement.md"
+    "filename": "Partnership-Agreement.md",
+    "slug": "partnership_agreement"
   },
   {
     "name": "Pilot Agreement",
     "description": "Standard short-term trial or evaluation agreement allowing a prospective customer to test a product or service before committing to a full commercial deal. Covers pilot scope, fees, IP, and transition to a full agreement.",
-    "filename": "Pilot-Agreement.md"
+    "filename": "Pilot-Agreement.md",
+    "slug": "pilot_agreement"
   },
   {
     "name": "Business Associate Agreement",
     "description": "Standard BAA for HIPAA compliance, governing the handling of protected health information (PHI) by a business associate on behalf of a covered entity. Covers permitted uses, safeguards, breach notification, and termination.",
-    "filename": "BAA.md"
+    "filename": "BAA.md",
+    "slug": "business_associate_agreement"
   },
   {
     "name": "AI Addendum",
     "description": "Standard addendum adding AI-specific terms to an existing agreement, covering AI system usage restrictions, data handling for AI training, output ownership, accuracy disclaimers, and compliance obligations.",
-    "filename": "AI-Addendum.md"
+    "filename": "AI-Addendum.md",
+    "slug": "ai_addendum"
   }
 ]

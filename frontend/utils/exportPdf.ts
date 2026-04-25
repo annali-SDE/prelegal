@@ -39,12 +39,16 @@ function snapBreak(
 }
 
 export async function exportNdaToPdf(): Promise<void> {
+  return exportDocumentToPdf("nda-preview", "Mutual-NDA.pdf");
+}
+
+export async function exportDocumentToPdf(elementId: string, filename: string): Promise<void> {
   const [{ toCanvas }, { jsPDF }] = await Promise.all([
     import("html-to-image"),
     import("jspdf"),
   ]);
 
-  const element = document.getElementById("nda-preview");
+  const element = document.getElementById(elementId);
   if (!element) throw new Error("Preview element not found");
 
   const hadExportClass = element.classList.contains("pdf-export-mode");
@@ -122,7 +126,7 @@ export async function exportNdaToPdf(): Promise<void> {
       );
     }
 
-    pdf.save("Mutual-NDA.pdf");
+    pdf.save(filename);
   } finally {
     if (!hadExportClass) element.classList.remove("pdf-export-mode");
   }
